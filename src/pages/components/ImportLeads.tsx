@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { FileExcel, UploadCloud } from 'lucide-react';
+import { FileText, UploadCloud } from 'lucide-react';
 import { read, utils } from 'xlsx';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -74,7 +74,7 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <FileExcel className="mr-2 h-4 w-4" /> Import Leads
+          <FileText className="mr-2 h-4 w-4" /> Import Leads
         </Button>
       </DialogTrigger>
       <DialogContent>
