@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { supabase, Lead } from '@/lib/supabase';
@@ -57,7 +56,7 @@ const TeamManagement = () => {
       if (profilesData && leadsData) {
         setEmployees(profilesData as Profile[]);
         
-        // Group leads by assigned_to
+        // Group leads by assigned_to -- even if name does not exist in employees list
         const groupedLeads: Record<string, Lead[]> = {};
         (leadsData as Lead[]).forEach(lead => {
           if (!groupedLeads[lead.assigned_to]) {
@@ -67,8 +66,8 @@ const TeamManagement = () => {
         });
         
         setEmployeeLeads(groupedLeads);
-        
-        // Set first employee as default selected
+
+        // Set the first found employee as selected
         if (profilesData.length > 0) {
           setSelectedEmployee(profilesData[0].name);
         }
@@ -91,9 +90,9 @@ const TeamManagement = () => {
     employee.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Get selected employee's leads
+  // Get leads for selected employee by name
   const selectedEmployeeLeads = selectedEmployee ? (employeeLeads[selectedEmployee] || []) : [];
-  
+
   // Calculate statistics for selected employee
   const employeeStats = selectedEmployee ? {
     totalLeads: selectedEmployeeLeads.length,

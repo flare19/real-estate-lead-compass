@@ -225,6 +225,9 @@ const EditLead = () => {
                   value={formData.team_leader || ''}
                   onChange={handleChange}
                   required
+                  readOnly={!isCEO}
+                  className={!isCEO ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}
+                  tabIndex={!isCEO ? -1 : undefined}
                 />
               </div>
 
@@ -236,6 +239,9 @@ const EditLead = () => {
                   value={formData.assigned_to || ''}
                   onChange={handleChange}
                   required
+                  readOnly={!isCEO}
+                  className={!isCEO ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}
+                  tabIndex={!isCEO ? -1 : undefined}
                 />
               </div>
 
