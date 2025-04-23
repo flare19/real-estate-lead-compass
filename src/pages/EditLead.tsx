@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase, Lead } from '@/lib/supabase';
@@ -20,7 +19,11 @@ const EditLead = () => {
   const { profile, isCEO } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState<Partial<Lead>>({});
+  const [formData, setFormData] = useState<Partial<Lead>>({
+    deal_status: "Not Contacted",
+    interest_level: "Yellow",
+    site_visit_done: false,
+  });
   const [originalLead, setOriginalLead] = useState<Lead | null>(null);
 
   useEffect(() => {
@@ -57,7 +60,6 @@ const EditLead = () => {
   };
 
   useEffect(() => {
-    // Check if user has permission to edit this lead
     if (!isLoading && originalLead) {
       if (!isCEO && profile?.name !== originalLead.assigned_to) {
         toast({
@@ -88,7 +90,6 @@ const EditLead = () => {
     setIsSubmitting(true);
 
     try {
-      // Convert budget to number if it's a string
       const formattedData = {
         ...formData,
         budget: typeof formData.budget === 'string' ? parseFloat(formData.budget) : formData.budget,
@@ -192,7 +193,7 @@ const EditLead = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget">Budget (in $) *</Label>
+                <Label htmlFor="budget">Budget (in ₹) *</Label>
                 <Input
                   id="budget"
                   name="budget"
@@ -265,18 +266,18 @@ const EditLead = () => {
               <div className="space-y-2">
                 <Label htmlFor="deal_status">Deal Status *</Label>
                 <Select
-                  value={formData.deal_status || ''}
+                  value={formData.deal_status || "Not Contacted"}
                   onValueChange={(value) => handleSelectChange('deal_status', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="contacting">Contacting</SelectItem>
-                    <SelectItem value="negotiation">Negotiation</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="Not Contacted">Not Contacted</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                    <SelectItem value="Site Visit">Site Visit</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                    <SelectItem value="Dropped">Dropped</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -284,16 +285,16 @@ const EditLead = () => {
               <div className="space-y-2">
                 <Label htmlFor="interest_level">Interest Level *</Label>
                 <Select
-                  value={formData.interest_level || ''}
+                  value={formData.interest_level || "Yellow"}
                   onValueChange={(value) => handleSelectChange('interest_level', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Interest Level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="Red">Red</SelectItem>
+                    <SelectItem value="Yellow">Yellow</SelectItem>
+                    <SelectItem value="Green">Green</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

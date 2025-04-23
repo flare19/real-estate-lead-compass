@@ -35,7 +35,7 @@ const DashboardLayout = () => {
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </Button>
-          <h1 className="text-xl font-bold text-primary">Real Estate Compass</h1>
+          <h1 className="text-xl font-bold text-primary">Lead Management System</h1>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium hidden md:inline-block">

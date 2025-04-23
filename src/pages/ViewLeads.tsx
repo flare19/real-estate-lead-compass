@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CSVLink } from 'react-csv';
@@ -42,6 +41,7 @@ import {
   MoreHorizontal,
   Plus,
 } from 'lucide-react';
+import ImportLeads from './components/ImportLeads';
 
 const ViewLeads = () => {
   const navigate = useNavigate();
@@ -73,7 +73,6 @@ const ViewLeads = () => {
         setLeads(data as Lead[]);
         setFilteredLeads(data as Lead[]);
         
-        // Extract unique areas for filter dropdown
         const areas = [...new Set(data.map(lead => lead.preferred_area))];
         setUniqueAreas(areas);
       }
@@ -96,7 +95,6 @@ const ViewLeads = () => {
   const applyFilters = () => {
     let results = [...leads];
 
-    // Apply search filter
     if (searchTerm) {
       results = results.filter(
         (lead) =>
@@ -106,12 +104,10 @@ const ViewLeads = () => {
       );
     }
 
-    // Apply budget filter
     if (budgetFilter !== 'all') {
       const [min, max] = budgetFilter.split('-').map(Number);
       
       if (!max) {
-        // "above-X" filter
         results = results.filter((lead) => lead.budget >= min);
       } else {
         results = results.filter(
@@ -120,18 +116,16 @@ const ViewLeads = () => {
       }
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       results = results.filter((lead) => lead.deal_status === statusFilter);
     }
     
-    // Apply area filter
     if (areaFilter !== 'all') {
       results = results.filter((lead) => lead.preferred_area === areaFilter);
     }
 
     setFilteredLeads(results);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   const resetFilters = () => {
@@ -141,9 +135,7 @@ const ViewLeads = () => {
     setAreaFilter('all');
   };
 
-  // Delete lead
   const handleDelete = async (id: string, assignedTo: string) => {
-    // Check if user has permission to delete
     if (!isCEO && profile?.name !== assignedTo) {
       toast({
         title: 'Permission Denied',
@@ -173,9 +165,7 @@ const ViewLeads = () => {
     }
   };
 
-  // Edit lead - Navigate to edit page
   const handleEdit = (id: string, assignedTo: string) => {
-    // Check if user has permission to edit
     if (!isCEO && profile?.name !== assignedTo) {
       toast({
         title: 'Permission Denied',
@@ -188,7 +178,6 @@ const ViewLeads = () => {
     navigate(`/leads/edit/${id}`);
   };
 
-  // Export to Excel
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredLeads);
     const workbook = XLSX.utils.book_new();
@@ -196,7 +185,6 @@ const ViewLeads = () => {
     XLSX.writeFile(workbook, `Leads_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
   };
 
-  // Pagination logic
   const indexOfLastLead = currentPage * leadsPerPage;
   const indexOfFirstLead = indexOfLastLead - leadsPerPage;
   const currentLeads = filteredLeads.slice(indexOfFirstLead, indexOfLastLead);
@@ -208,7 +196,6 @@ const ViewLeads = () => {
     }
   };
 
-  // CSV Data preparation
   const csvData = filteredLeads.map((lead) => ({
     'Customer Name': lead.customer_name,
     'Email': lead.email,
@@ -253,7 +240,7 @@ const ViewLeads = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
+          <ImportLeads onImport={fetchLeads} />
           {isCEO && (
             <Button onClick={() => navigate('/leads/new')}>
               <Plus className="mr-2 h-4 w-4" /> Add Lead
@@ -380,17 +367,17 @@ const ViewLeads = () => {
                       <TableRow key={lead.id}>
                         <TableCell className="font-medium">{lead.customer_name}</TableCell>
                         <TableCell>{lead.project_name}</TableCell>
-                        <TableCell>${lead.budget.toLocaleString()}</TableCell>
+                        <TableCell>₹{lead.budget.toLocaleString()}</TableCell>
                         <TableCell>{lead.preferred_area}</TableCell>
                         <TableCell>{lead.assigned_to}</TableCell>
                         <TableCell>
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              lead.deal_status === 'closed'
+                              lead.deal_status === 'Closed'
                                 ? 'bg-green-100 text-green-800'
-                                : lead.deal_status === 'new'
+                                : lead.deal_status === 'Not Contacted'
                                 ? 'bg-blue-100 text-blue-800'
-                                : lead.deal_status === 'lost'
+                                : lead.deal_status === 'Dropped'
                                 ? 'bg-red-100 text-red-800'
                                 : 'bg-yellow-100 text-yellow-800'
                             }`}
@@ -408,15 +395,19 @@ const ViewLeads = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(lead.id, lead.assigned_to)}>
-                                <Edit className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDelete(lead.id, lead.assigned_to)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
+                              {(isCEO || profile?.name === lead.assigned_to) && (
+                                <DropdownMenuItem onClick={() => handleEdit(lead.id, lead.assigned_to)}>
+                                  <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              {isCEO && (
+                                <DropdownMenuItem 
+                                  onClick={() => handleDelete(lead.id, lead.assigned_to)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -437,7 +428,6 @@ const ViewLeads = () => {
                     </PaginationItem>
                     
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      // Logic to show pages around current page
                       let pageNum;
                       if (totalPages <= 5) {
                         pageNum = i + 1;

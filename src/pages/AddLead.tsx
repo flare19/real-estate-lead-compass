@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -29,8 +28,8 @@ const AddLead = () => {
     last_contacted_date: format(new Date(), 'yyyy-MM-dd'),
     next_followup_date: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     comments: '',
-    deal_status: 'new',
-    interest_level: 'medium',
+    deal_status: 'Not Contacted',
+    interest_level: 'Yellow',
     property_type: 'apartment',
     site_visit_done: false,
   });
@@ -53,7 +52,6 @@ const AddLead = () => {
     setIsSubmitting(true);
 
     try {
-      // Convert budget to number
       const formattedData = {
         ...formData,
         budget: parseFloat(formData.budget),
@@ -146,7 +144,7 @@ const AddLead = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="budget">Budget (in $) *</Label>
+                <Label htmlFor="budget">Budget (in ₹) *</Label>
                 <Input
                   id="budget"
                   name="budget"
@@ -226,11 +224,11 @@ const AddLead = () => {
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="contacting">Contacting</SelectItem>
-                    <SelectItem value="negotiation">Negotiation</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="Not Contacted">Not Contacted</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                    <SelectItem value="Site Visit">Site Visit</SelectItem>
+                    <SelectItem value="Closed">Closed</SelectItem>
+                    <SelectItem value="Dropped">Dropped</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -245,9 +243,9 @@ const AddLead = () => {
                     <SelectValue placeholder="Select Interest Level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="Red">Red</SelectItem>
+                    <SelectItem value="Yellow">Yellow</SelectItem>
+                    <SelectItem value="Green">Green</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
