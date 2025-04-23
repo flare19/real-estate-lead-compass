@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CSVLink } from 'react-csv';
@@ -40,6 +41,7 @@ import {
   Filter,
   MoreHorizontal,
   Plus,
+  FileChartPie,
 } from 'lucide-react';
 import ImportLeads from './components/ImportLeads';
 
@@ -136,10 +138,10 @@ const ViewLeads = () => {
   };
 
   const handleDelete = async (id: string, assignedTo: string) => {
-    if (!isCEO && profile?.name !== assignedTo) {
+    if (!isCEO) {
       toast({
         title: 'Permission Denied',
-        description: 'You can only delete leads assigned to you.',
+        description: 'Only CEO can delete leads.',
         variant: 'destructive',
       });
       return;
@@ -183,6 +185,14 @@ const ViewLeads = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     XLSX.writeFile(workbook, `Leads_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  };
+  
+  const generateReport = () => {
+    navigate('/reports');
+  };
+  
+  const viewClosedDeals = () => {
+    setStatusFilter('Closed');
   };
 
   const indexOfLastLead = currentPage * leadsPerPage;
@@ -240,11 +250,21 @@ const ViewLeads = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <ImportLeads onImport={fetchLeads} />
+          
+          <Button onClick={viewClosedDeals} variant="outline">
+            Closed Deals
+          </Button>
+          
           {isCEO && (
-            <Button onClick={() => navigate('/leads/new')}>
-              <Plus className="mr-2 h-4 w-4" /> Add Lead
-            </Button>
+            <>
+              <Button onClick={generateReport} variant="outline">
+                <FileChartPie className="mr-2 h-4 w-4" /> Generate Report
+              </Button>
+              <ImportLeads onImport={fetchLeads} />
+              <Button onClick={() => navigate('/leads/new')}>
+                <Plus className="mr-2 h-4 w-4" /> Add Lead
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -276,12 +296,12 @@ const ViewLeads = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Budgets</SelectItem>
-                  <SelectItem value="0-50000">$0 - $50,000</SelectItem>
-                  <SelectItem value="50000-100000">$50,000 - $100,000</SelectItem>
-                  <SelectItem value="100000-250000">$100,000 - $250,000</SelectItem>
-                  <SelectItem value="250000-500000">$250,000 - $500,000</SelectItem>
-                  <SelectItem value="500000-1000000">$500,000 - $1,000,000</SelectItem>
-                  <SelectItem value="1000000-">Above $1,000,000</SelectItem>
+                  <SelectItem value="0-50000">₹0 - ₹50,000</SelectItem>
+                  <SelectItem value="50000-100000">₹50,000 - ₹100,000</SelectItem>
+                  <SelectItem value="100000-250000">₹100,000 - ₹250,000</SelectItem>
+                  <SelectItem value="250000-500000">₹250,000 - ₹500,000</SelectItem>
+                  <SelectItem value="500000-1000000">₹500,000 - ₹1,000,000</SelectItem>
+                  <SelectItem value="1000000-">Above ₹1,000,000</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -296,11 +316,11 @@ const ViewLeads = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacting">Contacting</SelectItem>
-                  <SelectItem value="negotiation">Negotiation</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="Not Contacted">Not Contacted</SelectItem>
+                  <SelectItem value="Follow-up">Follow-up</SelectItem>
+                  <SelectItem value="Site Visit">Site Visit</SelectItem>
+                  <SelectItem value="Closed">Closed</SelectItem>
+                  <SelectItem value="Dropped">Dropped</SelectItem>
                 </SelectContent>
               </Select>
             </div>

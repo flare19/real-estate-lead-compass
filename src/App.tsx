@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,9 @@ import Dashboard from "@/pages/Dashboard";
 import ViewLeads from "@/pages/ViewLeads";
 import AddLead from "@/pages/AddLead";
 import EditLead from "@/pages/EditLead";
+import ClosedDeals from "@/pages/ClosedDeals";
+import Reports from "@/pages/Reports";
+import TeamManagement from "@/pages/TeamManagement";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +38,9 @@ const App = () => (
                 <Route path="/leads" element={<ViewLeads />} />
                 <Route path="/leads/new" element={<AddLead />} />
                 <Route path="/leads/edit/:id" element={<EditLead />} />
+                <Route path="/closed-deals" element={<ClosedDeals />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/team-management" element={<TeamManagement />} />
               </Route>
             </Route>
             

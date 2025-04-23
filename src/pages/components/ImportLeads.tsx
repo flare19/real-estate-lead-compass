@@ -1,120 +1,109 @@
 
-import { useRef } from "react";
-import * as XLSX from "xlsx";
-import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { FilePlus } from "lucide-react";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { FileExcel, UploadCloud } from 'lucide-react';
+import { read, utils } from 'xlsx';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
-type ImportLeadsProps = {
-  onImport?: () => void;
-};
+interface ImportLeadsProps {
+  onImport: () => void;
+}
 
 const ImportLeads = ({ onImport }: ImportLeadsProps) => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    setIsUploading(true);
+    
     try {
+      const file = e.target.files[0];
       const data = await file.arrayBuffer();
-      const workbook = XLSX.read(data);
+      const workbook = read(data);
+      
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<any>(worksheet);
-
-      // Show import in progress toast
-      toast({ title: "Importing leads...", description: "Leads are being imported. Please wait." });
-
-      // Format and validate leads
-      const mappedRows = rows
-        .map((row) => ({
-          customer_name: row["customer_name"]?.toString() || "",
-          email: row["email"]?.toString() || "",
-          mobile_number: row["mobile_number"]?.toString() || "",
-          project_name: row["project_name"]?.toString() || "",
-          budget: Number(row["budget"] ?? 0),
-          preferred_area: row["preferred_area"]?.toString() || "",
-          team_leader: row["team_leader"]?.toString() || "",
-          assigned_to: row["assigned_to"]?.toString() || "",
-          last_contacted_date: row["last_contacted_date"]?.toString() || "",
-          next_followup_date: row["next_followup_date"]?.toString() || "",
-          comments: row["comments"]?.toString() || "",
-          deal_status: row["deal_status"]?.toString() || "Not Contacted",
-          interest_level: row["interest_level"]?.toString() || "Yellow",
-          property_type: row["property_type"]?.toString() || "",
-          site_visit_done: row["site_visit_done"] === true || row["site_visit_done"] === "TRUE" || row["site_visit_done"] === "true",
-        }))
-        .filter(r => r.customer_name && r.email);
-
-      if (mappedRows.length === 0) {
-        toast({
-          title: "No leads found!",
-          description: "Please check your Excel and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Bulk insert into Supabase
-      const { error } = await supabase.from("leads").insert(mappedRows);
-      if (error) {
-        toast({
-          title: "Import failed",
-          description: error.message || "Could not import leads.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Leads imported successfully",
-          description: `${mappedRows.length} leads have been added!`,
-        });
-        if (onImport) onImport();
-      }
-    } catch (err) {
+      const jsonData = utils.sheet_to_json(worksheet);
+      
+      // Process and validate data
+      const processedData = jsonData.map(row => ({
+        customer_name: row['Customer Name'] || row['customer_name'] || '',
+        email: row['Email'] || row['email'] || '',
+        mobile_number: row['Mobile'] || row['mobile_number'] || '',
+        project_name: row['Project'] || row['project_name'] || '',
+        budget: Number(row['Budget'] || row['budget'] || 0),
+        preferred_area: row['Area'] || row['preferred_area'] || '',
+        team_leader: row['Team Leader'] || row['team_leader'] || '',
+        assigned_to: row['Assigned To'] || row['assigned_to'] || '',
+        last_contacted_date: row['Last Contacted'] || row['last_contacted_date'] || null,
+        next_followup_date: row['Next Followup'] || row['next_followup_date'] || null,
+        comments: row['Comments'] || row['comments'] || '',
+        deal_status: row['Status'] || row['deal_status'] || 'Not Contacted',
+        interest_level: row['Interest'] || row['interest_level'] || 'Yellow',
+        property_type: row['Property Type'] || row['property_type'] || '',
+        site_visit_done: row['Site Visit'] === 'Yes' || row['site_visit_done'] === true || false
+      }));
+      
+      // Insert data into Supabase
+      const { error } = await supabase.from('leads').insert(processedData);
+      
+      if (error) throw error;
+      
       toast({
-        title: "Error importing leads",
-        description: "There was a problem parsing or importing the file.",
-        variant: "destructive",
+        title: 'Import Successful',
+        description: `${processedData.length} leads imported successfully.`
+      });
+      
+      onImport();
+    } catch (error) {
+      console.error('Error importing leads:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'There was an error importing your leads. Please check your file format.',
+        variant: 'destructive'
       });
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      setIsUploading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => fileInputRef.current?.click()}
-        className="flex gap-2"
-        size="sm"
-      >
-        <FilePlus className="h-4 w-4" />
-        Import Leads
-      </Button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".xlsx,.xls"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-      <div className="text-xs text-gray-600 mt-1 text-center w-52">
-        <strong>Instructions:</strong> Prepare an Excel file with the following columns:
-        <br />
-        <code>
-          customer_name, email, mobile_number, project_name, budget, preferred_area,
-          team_leader, assigned_to, last_contacted_date, next_followup_date, comments,
-          deal_status, interest_level, property_type, site_visit_done
-        </code>
-        <br />
-        Allowed deal_status: Not Contacted, Follow-up, Site Visit, Closed, Dropped.<br />
-        Allowed interest_level: Red, Yellow, Green.<br />
-        For site_visit_done, use TRUE or FALSE.
-      </div>
-    </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <FileExcel className="mr-2 h-4 w-4" /> Import Leads
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Import Leads</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-4 py-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 w-full flex flex-col items-center">
+            <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="flex flex-col items-center">
+                <Button variant="outline" disabled={isUploading}>
+                  {isUploading ? 'Uploading...' : 'Select Excel File'}
+                </Button>
+              </div>
+              <input 
+                id="file-upload" 
+                type="file" 
+                className="hidden" 
+                accept=".xlsx,.xls"
+                onChange={handleFileUpload}
+                disabled={isUploading}
+              />
+            </label>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
+
 export default ImportLeads;

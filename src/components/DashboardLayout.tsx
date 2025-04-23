@@ -9,7 +9,10 @@ import {
   PlusCircle,
   LogOut,
   Menu,
-  X
+  X,
+  FileChartPie,
+  UserCog,
+  CheckCircle
 } from 'lucide-react';
 
 const DashboardLayout = () => {
@@ -84,20 +87,64 @@ const DashboardLayout = () => {
               <span>View Leads</span>
             </NavLink>
 
+            <NavLink
+              to="/closed-deals"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`
+              }
+            >
+              <CheckCircle className="h-5 w-5" />
+              <span>Closed Deals</span>
+            </NavLink>
+
+            <NavLink
+              to="/reports"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`
+              }
+            >
+              <FileChartPie className="h-5 w-5" />
+              <span>Reports</span>
+            </NavLink>
+
             {isCEO && (
-              <NavLink
-                to="/leads/new"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`
-                }
-              >
-                <PlusCircle className="h-5 w-5" />
-                <span>Add New Lead</span>
-              </NavLink>
+              <>
+                <NavLink
+                  to="/leads/new"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <PlusCircle className="h-5 w-5" />
+                  <span>Add New Lead</span>
+                </NavLink>
+                
+                <NavLink
+                  to="/team-management"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <UserCog className="h-5 w-5" />
+                  <span>Team Management</span>
+                </NavLink>
+              </>
             )}
           </nav>
         </aside>
