@@ -1,17 +1,18 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Lead } from '@/lib/supabase';
+import BirthdayAnimation from '@/components/BirthdayAnimation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlusCircle, Users, ArrowUpRight, TrendingUp, CheckCircle, CalendarDays } from 'lucide-react';
 
 const Dashboard = () => {
-  const { isCEO } = useAuth();
+  const { isCEO, profile } = useAuth();
   const navigate = useNavigate();
+  const [showBirthdayAnimation, setShowBirthdayAnimation] = useState(false);
   const [stats, setStats] = useState({
     totalLeads: 0,
     activeLeads: 0,
@@ -72,8 +73,16 @@ const Dashboard = () => {
     fetchDashboardStats();
   }, [today]);
 
+  useEffect(() => {
+    // Check if the current user's email matches
+    if (profile?.email === 'nitinlokhande2009@gmail.com') {
+      setShowBirthdayAnimation(true);
+    }
+  }, [profile?.email]);
+
   return (
     <div className="space-y-6">
+      {showBirthdayAnimation && <BirthdayAnimation />}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         {isCEO && (
