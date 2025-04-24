@@ -16,20 +16,21 @@ import ClosedDeals from "@/pages/ClosedDeals";
 import Reports from "@/pages/Reports";
 import TeamManagement from "@/pages/TeamManagement";
 import NotFound from "@/pages/NotFound";
+import Index from "@/pages/Index";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Index />} />
             
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
