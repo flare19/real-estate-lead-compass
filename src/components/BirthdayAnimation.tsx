@@ -7,24 +7,38 @@ import { useToast } from '@/hooks/use-toast';
 
 const BirthdayAnimation = () => {
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showAnimation, setShowAnimation] = useState(true);
   const { width, height } = useWindowSize();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Show birthday toast
-    toast({
-      title: "🎉 Happy Birthday!",
-      description: "Wishing you a fantastic day filled with joy and success! 🎂",
-      duration: 5000,
-    });
+    const today = new Date();
+    const isBirthday = today.getDate() === 10 && today.getMonth() === 4; // May is 4 (0-based)
 
-    // Stop confetti after 5 seconds
-    const timer = setTimeout(() => {
+    if (isBirthday) {
+      // Show birthday toast
+      toast({
+        title: "🎉 Happy Birthday!",
+        description: "Wishing you a fantastic day filled with joy and success! 🎂",
+        duration: 5000,
+      });
+
+      // Stop confetti and animation after 5 seconds
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+        setShowAnimation(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    } else {
+      // If not birthday, don't show animation at all
       setShowConfetti(false);
-    }, 5000);
-
-    return () => clearTimeout(timer);
+      setShowAnimation(false);
+    }
   }, [toast]);
+
+  // If not showing animation, return null
+  if (!showAnimation) return null;
 
   return (
     <>

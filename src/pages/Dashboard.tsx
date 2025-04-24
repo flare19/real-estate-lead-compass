@@ -25,32 +25,27 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        // Get total leads count
         const { count: totalCount } = await supabase
           .from('leads')
           .select('*', { count: 'exact', head: true });
 
-        // Get active leads count (not closed/converted)
         const { count: activeCount } = await supabase
           .from('leads')
           .select('*', { count: 'exact', head: true })
           .neq('deal_status', 'Closed');
 
-        // Get converted leads count
         const { count: convertedCount } = await supabase
           .from('leads')
           .select('*', { count: 'exact', head: true })
           .eq('deal_status', 'Closed')
           .eq('interest_level', 'Green');
 
-        // Get recent leads
         const { data: recentLeads } = await supabase
           .from('leads')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(5);
 
-        // Get today's follow-ups
         const { data: followups } = await supabase
           .from('leads')
           .select('*')
@@ -74,9 +69,13 @@ const Dashboard = () => {
   }, [today]);
 
   useEffect(() => {
-    // Check if the current user's email matches
-    if (profile?.email === 'nitinlokhande2009@gmail.com') {
+    const currentDate = new Date();
+    const isBirthday = currentDate.getDate() === 10 && currentDate.getMonth() === 4; // May is 4 (0-based)
+    
+    if (isBirthday && profile?.email === 'nitinlokhande2009@gmail.com') {
       setShowBirthdayAnimation(true);
+    } else {
+      setShowBirthdayAnimation(false);
     }
   }, [profile?.email]);
 
