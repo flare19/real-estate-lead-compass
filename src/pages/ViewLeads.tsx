@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CSVLink } from 'react-csv';
@@ -195,6 +194,10 @@ const ViewLeads = () => {
     setStatusFilter('Closed');
   };
 
+  const handleEmailClick = (email: string) => {
+    window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank');
+  };
+
   const indexOfLastLead = currentPage * leadsPerPage;
   const indexOfFirstLead = indexOfLastLead - leadsPerPage;
   const currentLeads = filteredLeads.slice(indexOfFirstLead, indexOfLastLead);
@@ -373,6 +376,7 @@ const ViewLeads = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Customer Name</TableHead>
+                      <TableHead>Email</TableHead>
                       <TableHead>Project</TableHead>
                       <TableHead>Budget</TableHead>
                       <TableHead>Area</TableHead>
@@ -386,6 +390,14 @@ const ViewLeads = () => {
                     {currentLeads.map((lead) => (
                       <TableRow key={lead.id}>
                         <TableCell className="font-medium">{lead.customer_name}</TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => handleEmailClick(lead.email)}
+                            className="text-primary hover:underline"
+                          >
+                            {lead.email}
+                          </button>
+                        </TableCell>
                         <TableCell>{lead.project_name}</TableCell>
                         <TableCell>₹{lead.budget.toLocaleString()}</TableCell>
                         <TableCell>{lead.preferred_area}</TableCell>
