@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase, Lead } from '@/lib/supabase';
 import BirthdayAnimation from '@/components/BirthdayAnimation';
+import { LeadActivityLog } from '@/components/LeadActivityLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -50,6 +51,7 @@ const Dashboard = () => {
           .from('leads')
           .select('*')
           .eq('next_followup_date', today)
+          .if(!isCEO, 'eq', 'assigned_to', profile?.email)
           .order('assigned_to');
 
         setStats({
@@ -66,7 +68,7 @@ const Dashboard = () => {
     };
 
     fetchDashboardStats();
-  }, [today]);
+  }, [today, isCEO, profile?.email]);
 
   useEffect(() => {
     const currentDate = new Date();
@@ -128,6 +130,7 @@ const Dashboard = () => {
         <TabsList>
           <TabsTrigger value="recent">Recent Leads</TabsTrigger>
           <TabsTrigger value="today">Today's Activities</TabsTrigger>
+          {isCEO && <TabsTrigger value="activity-log">Activity Log</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="recent">
@@ -247,6 +250,19 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {isCEO && (
+          <TabsContent value="activity-log">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Lead Changes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LeadActivityLog />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
