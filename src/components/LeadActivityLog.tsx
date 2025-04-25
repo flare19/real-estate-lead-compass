@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { format, isWithinHours } from 'date-fns';
+import { format, differenceInHours, parseISO } from 'date-fns';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase';
@@ -35,9 +35,12 @@ export const LeadActivityLog = () => {
       }
 
       // Filter out activities older than 3 hours
-      const recentActivities = data?.filter(activity => 
-        !activity.is_dismissed && isWithinHours(new Date(activity.created_at), 3)
-      ) || [];
+      const recentActivities = data?.filter(activity => {
+        if (activity.is_dismissed) return false;
+        const createdAt = parseISO(activity.created_at);
+        const hoursDifference = differenceInHours(new Date(), createdAt);
+        return hoursDifference <= 3;
+      }) || [];
 
       setActivities(recentActivities);
     };

@@ -47,12 +47,16 @@ const Dashboard = () => {
           .order('created_at', { ascending: false })
           .limit(5);
 
-        const { data: followups } = await supabase
+        let query = supabase
           .from('leads')
           .select('*')
-          .eq('next_followup_date', today)
-          .if(!isCEO, 'eq', 'assigned_to', profile?.email)
-          .order('assigned_to');
+          .eq('next_followup_date', today);
+        
+        if (!isCEO) {
+          query = query.eq('assigned_to', profile?.email || '');
+        }
+        
+        const { data: followups } = await query.order('assigned_to');
 
         setStats({
           totalLeads: totalCount || 0,
