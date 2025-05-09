@@ -35,15 +35,14 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md px-4">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/c9dd1e05-a4dd-4f12-af3f-7c6992fecde1.png" 
               alt="PropBizz Logo" 
-              className="h-32 w-auto"
+              className="h-40 w-auto"
             />
           </div>
-          <p className="text-muted-foreground">Lead Management System</p>
         </div>
         
         <Card className="w-full shadow-lg border-none">

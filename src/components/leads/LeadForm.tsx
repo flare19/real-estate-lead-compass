@@ -133,21 +133,13 @@ const LeadForm = ({
 
             <div className="space-y-2">
               <Label htmlFor="assigned_to">Assigned To *</Label>
-              <Select
+              <Input
+                id="assigned_to"
+                name="assigned_to"
                 value={formData.assigned_to}
-                onValueChange={(value) => handleSelectChange('assigned_to', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Assignee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.name}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div className="space-y-2">
