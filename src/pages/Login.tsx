@@ -35,12 +35,12 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md px-4">
-        <div className="text-center mb-10">
-          <div className="flex justify-center mb-6">
+        <div className="text-center mb-14">
+          <div className="flex justify-center">
             <img 
-              src="/lovable-uploads/c9dd1e05-a4dd-4f12-af3f-7c6992fecde1.png" 
+              src="/lovable-uploads/201d4ac8-fdba-4f26-b229-14622cc89f90.png" 
               alt="PropBizz Logo" 
-              className="h-40 w-auto"
+              className="h-52 w-auto"
             />
           </div>
         </div>
