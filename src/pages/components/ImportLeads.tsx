@@ -13,6 +13,7 @@ interface ImportLeadsProps {
 
 const ImportLeads = ({ onImport }: ImportLeadsProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,8 +29,14 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = utils.sheet_to_json(worksheet);
       
+      if (jsonData.length === 0) {
+        throw new Error("No data found in the Excel file");
+      }
+      
+      console.log("Processing data:", jsonData);
+      
       // Process and validate data
-      const processedData = jsonData.map(row => ({
+      const processedData = jsonData.map((row: any) => ({
         customer_name: row['Customer Name'] || row['customer_name'] || '',
         email: row['Email'] || row['email'] || '',
         mobile_number: row['Mobile'] || row['mobile_number'] || '',
@@ -47,22 +54,32 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
         site_visit_done: row['Site Visit'] === 'Yes' || row['site_visit_done'] === true || false
       }));
       
-      // Insert data into Supabase
-      const { error } = await supabase.from('leads').insert(processedData);
+      console.log("Processed data:", processedData);
       
-      if (error) throw error;
+      // Insert data into Supabase
+      const { error, data: result } = await supabase.from('leads').insert(processedData);
+      
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
       
       toast({
         title: 'Import Successful',
         description: `${processedData.length} leads imported successfully.`
       });
       
+      setIsDialogOpen(false);
       onImport();
+      
+      // Reset the file input
+      e.target.value = '';
+      
     } catch (error) {
       console.error('Error importing leads:', error);
       toast({
         title: 'Import Failed',
-        description: 'There was an error importing your leads. Please check your file format.',
+        description: 'There was an error importing your leads. Please check your file format and try again.',
         variant: 'destructive'
       });
     } finally {
@@ -71,7 +88,7 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
           <FileText className="mr-2 h-4 w-4" /> Import Leads
@@ -89,6 +106,9 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
                 <Button variant="outline" disabled={isUploading}>
                   {isUploading ? 'Uploading...' : 'Select Excel File'}
                 </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Upload .xlsx or .xls file with lead data
+                </p>
               </div>
               <input 
                 id="file-upload" 

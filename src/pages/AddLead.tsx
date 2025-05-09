@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/lib/supabase';
@@ -12,10 +13,18 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
 
+interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 const AddLead = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [employees, setEmployees] = useState<Profile[]>([]);
   const [formData, setFormData] = useState({
     customer_name: '',
     email: '',
@@ -33,6 +42,34 @@ const AddLead = () => {
     property_type: 'apartment',
     site_visit_done: false,
   });
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'Employee');
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          setEmployees(data);
+        }
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch employee data.',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    fetchEmployees();
+  }, [toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -170,24 +207,40 @@ const AddLead = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="team_leader">Team Leader *</Label>
-                <Input
-                  id="team_leader"
-                  name="team_leader"
+                <Select
                   value={formData.team_leader}
-                  onChange={handleChange}
-                  required
-                />
+                  onValueChange={(value) => handleSelectChange('team_leader', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Team Leader" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.name}>
+                        {employee.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="assigned_to">Assigned To *</Label>
-                <Input
-                  id="assigned_to"
-                  name="assigned_to"
+                <Select
                   value={formData.assigned_to}
-                  onChange={handleChange}
-                  required
-                />
+                  onValueChange={(value) => handleSelectChange('assigned_to', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.name}>
+                        {employee.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

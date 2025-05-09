@@ -36,7 +36,13 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md px-4">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">Real Estate Compass</h1>
+          <div className="flex justify-center mb-4">
+            <img 
+              src="/lovable-uploads/c9dd1e05-a4dd-4f12-af3f-7c6992fecde1.png" 
+              alt="PropBizz Logo" 
+              className="h-32 w-auto"
+            />
+          </div>
           <p className="text-muted-foreground">Lead Management System</p>
         </div>
         
@@ -97,7 +103,7 @@ const Login = () => {
         
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Real Estate Compass. All rights reserved.
+            &copy; {new Date().getFullYear()} PropBizz. All rights reserved.
           </p>
         </div>
       </div>
