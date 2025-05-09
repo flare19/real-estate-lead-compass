@@ -55,12 +55,14 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
         // Ensure dates are in YYYY-MM-DD format
         if (lastContactedDate && typeof lastContactedDate === 'number') {
           // Handle Excel date serial numbers
-          lastContactedDate = utils.format_date(new Date(Math.round((lastContactedDate - 25569) * 86400 * 1000)), 'yyyy-mm-dd');
+          const dateObj = new Date(Math.round((lastContactedDate - 25569) * 86400 * 1000));
+          lastContactedDate = dateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
         }
         
         if (nextFollowupDate && typeof nextFollowupDate === 'number') {
           // Handle Excel date serial numbers
-          nextFollowupDate = utils.format_date(new Date(Math.round((nextFollowupDate - 25569) * 86400 * 1000)), 'yyyy-mm-dd');
+          const dateObj = new Date(Math.round((nextFollowupDate - 25569) * 86400 * 1000));
+          nextFollowupDate = dateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
         }
         
         return {
@@ -159,9 +161,6 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
                   <Button variant="outline" disabled={isUploading}>
                     Select Excel File
                   </Button>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Upload .xlsx or .xls file with lead data
-                  </p>
                 </div>
                 <input 
                   id="file-upload" 
@@ -173,27 +172,6 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
                 />
               </label>
             )}
-          </div>
-          
-          <div className="w-full text-sm text-muted-foreground">
-            <p className="font-semibold mb-2">Expected Excel Format:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Customer Name</li>
-              <li>Email</li>
-              <li>Mobile</li>
-              <li>Project</li>
-              <li>Budget</li>
-              <li>Area</li>
-              <li>Team Leader</li>
-              <li>Assigned To</li>
-              <li>Last Contacted (date)</li>
-              <li>Next Followup (date)</li>
-              <li>Status</li>
-              <li>Interest</li>
-              <li>Property Type</li>
-              <li>Site Visit (Yes/No)</li>
-              <li>Comments</li>
-            </ul>
           </div>
         </div>
       </DialogContent>
