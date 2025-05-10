@@ -57,25 +57,37 @@ const TeamManagement = () => {
   const fetchTeamData = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching employee data...");
+      
       // Fetch employee profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'Employee');
         
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
+      }
+      
+      console.log("Profiles data received:", profilesData);
       
       // Fetch all leads
       const { data: leadsData, error: leadsError } = await supabase
         .from('leads')
         .select('*');
         
-      if (leadsError) throw leadsError;
+      if (leadsError) {
+        console.error("Error fetching leads:", leadsError);
+        throw leadsError;
+      }
+      
+      console.log("Leads data received:", leadsData);
       
       if (profilesData && leadsData) {
         setEmployees(profilesData as Profile[]);
         
-        // Group leads by assigned_to -- even if name does not exist in employees list
+        // Group leads by assigned_to
         const groupedLeads: Record<string, Lead[]> = {};
         (leadsData as Lead[]).forEach(lead => {
           if (!groupedLeads[lead.assigned_to]) {
@@ -140,13 +152,18 @@ const TeamManagement = () => {
 
   const handleAddEmployee = async (values: z.infer<typeof employeeFormSchema>) => {
     try {
+      console.log("Adding new employee:", values);
+      
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error("Auth error:", authError);
+        throw authError;
+      }
 
       if (authData?.user) {
         // Create profile
@@ -165,7 +182,10 @@ const TeamManagement = () => {
             },
           ]);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error("Profile error:", profileError);
+          throw profileError;
+        }
 
         toast({
           title: 'Success',
@@ -333,7 +353,7 @@ const TeamManagement = () => {
     
     const totalLeads = leads.length;
     const closedLeads = leads.filter(lead => lead.deal_status === 'Closed').length;
-    const conversionRate = (closedLeads / totalLeads) * 100;
+    const conversionRate = totalLeads > 0 ? (closedLeads / totalLeads) * 100 : 0;
     
     // Score based on conversion rate (max 7 points) and volume (max 3 points)
     const conversionScore = Math.min(7, (conversionRate / 100) * 7);
@@ -487,89 +507,95 @@ const TeamManagement = () => {
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
             </div>
-          ) : filteredEmployees.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No employees found.</p>
-            </div>
           ) : (
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Mobile</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Leads</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEmployees.map((employee) => (
-                    <TableRow 
-                      key={employee.id} 
-                      className={employee.name === selectedEmployee ? "bg-muted/50" : ""}
-                    >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center">
-                          <UserCog className="h-5 w-5 mr-2 text-primary" />
-                          {employee.name}
-                          {employee.is_terminated && (
-                            <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
-                              Terminated
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{employee.email}</TableCell>
-                      <TableCell>{employee.mobile || 'Not provided'}</TableCell>
-                      <TableCell>
-                        {employee.is_terminated ? (
-                          <span className="text-red-500">
-                            Terminated on {employee.termination_date ? format(new Date(employee.termination_date), 'dd MMM yyyy') : 'N/A'}
-                          </span>
-                        ) : (
-                          <span className="text-green-500">Active</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{employeeLeads[employee.name]?.length || 0}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold">
-                            {calculateEmployeeScore(employee.name)}
-                          </div>
-                          <div className="ml-2 w-24 h-2 bg-gray-200 rounded-full">
-                            <div 
-                              className="h-full bg-primary rounded-full" 
-                              style={{ width: `${(calculateEmployeeScore(employee.name) / 10) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleViewEmployeeDetails(employee)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleAssignLead(employee.name)}
-                            disabled={employee.is_terminated}
-                          >
-                            Assign Lead
-                          </Button>
-                        </div>
-                      </TableCell>
+              {employees.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No employees found. Add your first employee using the button above.</p>
+                </div>
+              ) : filteredEmployees.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No employees match your search criteria.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Mobile</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Leads</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEmployees.map((employee) => (
+                      <TableRow 
+                        key={employee.id} 
+                        className={employee.name === selectedEmployee ? "bg-muted/50" : ""}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <UserCog className="h-5 w-5 mr-2 text-primary" />
+                            {employee.name}
+                            {employee.is_terminated && (
+                              <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                                Terminated
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{employee.email}</TableCell>
+                        <TableCell>{employee.mobile || 'Not provided'}</TableCell>
+                        <TableCell>
+                          {employee.is_terminated ? (
+                            <span className="text-red-500">
+                              Terminated on {employee.termination_date ? format(new Date(employee.termination_date), 'dd MMM yyyy') : 'N/A'}
+                            </span>
+                          ) : (
+                            <span className="text-green-500">Active</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{employeeLeads[employee.name]?.length || 0}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold">
+                              {calculateEmployeeScore(employee.name)}
+                            </div>
+                            <div className="ml-2 w-24 h-2 bg-gray-200 rounded-full">
+                              <div 
+                                className="h-full bg-primary rounded-full" 
+                                style={{ width: `${(calculateEmployeeScore(employee.name) / 10) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleViewEmployeeDetails(employee)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleAssignLead(employee.name)}
+                              disabled={employee.is_terminated}
+                            >
+                              Assign Lead
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           )}
         </CardContent>
