@@ -48,7 +48,7 @@ const AddLead = () => {
         formData={formData}
         handleChange={handleChange}
         handleSelectChange={handleSelectChange}
-        handleSwitchChange={(name, checked) => handleSwitchChange(name, checked)}
+        handleSwitchChange={(checked) => handleSwitchChange('site_visit_done', checked)}
         employees={employees}
         onCancel={() => navigate('/leads')}
       />
