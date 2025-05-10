@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { supabase, Lead } from '@/lib/supabase';
@@ -31,7 +30,7 @@ interface Profile {
   role: string;
   created_at: string;
   email: string;
-  mobile?: string;
+  mobile_number?: string; // Updated to match DB schema
   salary?: number;
   is_terminated?: boolean;
   termination_date?: string | null;
@@ -116,18 +115,17 @@ const TeamManagement = () => {
     }
   };
 
-  // Add employee form schema
+  // Add employee form schema - removed password requirement since we can't directly set it
   const employeeFormSchema = z.object({
     name: z.string().min(3, { message: "Name must be at least 3 characters" }),
     email: z.string().email({ message: "Must be a valid email address" }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-    mobile: z.string().optional(),
+    mobile_number: z.string().optional(), // Updated to match DB schema
     salary: z.coerce.number().min(0).optional(),
   });
 
   // Edit employee form schema
   const editEmployeeFormSchema = z.object({
-    mobile: z.string().optional(),
+    mobile_number: z.string().optional(), // Updated to match DB schema
     salary: z.coerce.number().min(0).optional(),
   });
 
@@ -136,8 +134,7 @@ const TeamManagement = () => {
     defaultValues: {
       name: "",
       email: "",
-      password: "",
-      mobile: "",
+      mobile_number: "", // Updated to match DB schema
       salary: undefined,
     },
   });
@@ -145,7 +142,7 @@ const TeamManagement = () => {
   const editEmployeeForm = useForm<z.infer<typeof editEmployeeFormSchema>>({
     resolver: zodResolver(editEmployeeFormSchema),
     defaultValues: {
-      mobile: "",
+      mobile_number: "", // Updated to match DB schema
       salary: undefined,
     },
   });
@@ -154,48 +151,40 @@ const TeamManagement = () => {
     try {
       console.log("Adding new employee:", values);
       
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
+      // We can't create auth users without service role key, so we'll show a notification
+      toast({
+        title: 'Info',
+        description: `Employee data will be added, but authentication access requires setup by an admin.`,
       });
 
-      if (authError) {
-        console.error("Auth error:", authError);
-        throw authError;
+      // Create profile directly without auth
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            name: values.name,
+            email: values.email,
+            role: 'Employee',
+            mobile_number: values.mobile_number || null, // Updated to match DB schema
+            salary: values.salary || null,
+            is_terminated: false,
+            termination_date: null,
+          },
+        ]);
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
       }
 
-      if (authData?.user) {
-        // Create profile
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: authData.user.id,
-              name: values.name,
-              email: values.email,
-              role: 'Employee',
-              mobile: values.mobile || null,
-              salary: values.salary || null,
-              is_terminated: false,
-              termination_date: null,
-            },
-          ]);
+      toast({
+        title: 'Success',
+        description: `Employee ${values.name} has been added.`,
+      });
 
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          throw profileError;
-        }
-
-        toast({
-          title: 'Success',
-          description: `Employee ${values.name} has been added.`,
-        });
-
-        setShowAddEmployeeDialog(false);
-        addEmployeeForm.reset();
-        fetchTeamData();
-      }
+      setShowAddEmployeeDialog(false);
+      addEmployeeForm.reset();
+      fetchTeamData();
     } catch (error) {
       console.error('Error adding employee:', error);
       toast({
@@ -213,7 +202,7 @@ const TeamManagement = () => {
 
   const handleEditEmployeeClick = (employee: Profile) => {
     setSelectedEmployeeDetails(employee);
-    editEmployeeForm.setValue('mobile', employee.mobile || '');
+    editEmployeeForm.setValue('mobile_number', employee.mobile_number || '');
     editEmployeeForm.setValue('salary', employee.salary || undefined);
     setShowEditEmployeeDialog(true);
   };
@@ -225,7 +214,7 @@ const TeamManagement = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          mobile: values.mobile || null,
+          mobile_number: values.mobile_number || null, // Updated to match DB schema
           salary: values.salary || null,
         })
         .eq('id', selectedEmployeeDetails.id);
@@ -399,7 +388,7 @@ const TeamManagement = () => {
             <DialogHeader>
               <DialogTitle>Add New Employee</DialogTitle>
               <DialogDescription>
-                Enter the details of the new employee. They will be able to login with the provided email and password.
+                Enter the details of the new employee. Note: Password creation requires admin setup.
               </DialogDescription>
             </DialogHeader>
             
@@ -435,21 +424,7 @@ const TeamManagement = () => {
                 
                 <FormField
                   control={addEmployeeForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <FormControl>
-                        <Input placeholder="******" type="password" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={addEmployeeForm.control}
-                  name="mobile"
+                  name="mobile_number"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Mobile (Optional)</FormLabel>
@@ -548,7 +523,7 @@ const TeamManagement = () => {
                           </div>
                         </TableCell>
                         <TableCell>{employee.email}</TableCell>
-                        <TableCell>{employee.mobile || 'Not provided'}</TableCell>
+                        <TableCell>{employee.mobile_number || 'Not provided'}</TableCell>
                         <TableCell>
                           {employee.is_terminated ? (
                             <span className="text-red-500">
@@ -794,7 +769,7 @@ const TeamManagement = () => {
                     </div>
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Mobile</p>
-                      <p className="font-medium">{selectedEmployeeDetails.mobile || 'Not provided'}</p>
+                      <p className="font-medium">{selectedEmployeeDetails.mobile_number || 'Not provided'}</p>
                     </div>
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">Salary</p>
@@ -840,7 +815,7 @@ const TeamManagement = () => {
             <form onSubmit={editEmployeeForm.handleSubmit(handleEditEmployee)} className="space-y-4">
               <FormField
                 control={editEmployeeForm.control}
-                name="mobile"
+                name="mobile_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Mobile</FormLabel>

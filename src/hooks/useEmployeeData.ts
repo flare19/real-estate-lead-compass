@@ -13,15 +13,18 @@ export const useEmployeeData = () => {
     const fetchEmployees = async () => {
       try {
         setIsLoading(true);
+        console.log('Fetching employees from profiles table...');
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('role', 'Employee');
 
         if (error) {
+          console.error('Error fetching employees:', error);
           throw error;
         }
 
+        console.log('Employees data received:', data);
         if (data) {
           setEmployees(data);
         }
