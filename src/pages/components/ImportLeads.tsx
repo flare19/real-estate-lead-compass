@@ -1,8 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { FileText, UploadCloud } from 'lucide-react';
+import { FileSpreadsheet, Upload } from 'lucide-react';
 import { read, utils } from 'xlsx';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
@@ -17,6 +17,7 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileName, setFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +116,9 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
       onImport();
       
       // Reset the file input and progress
-      e.target.value = '';
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       setFileName('');
       setProgress(0);
       
@@ -132,11 +135,17 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
     }
   };
 
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <FileText className="mr-2 h-4 w-4" /> Import Leads
+          <FileSpreadsheet className="mr-2 h-4 w-4" /> Import Leads
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -145,7 +154,7 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
         </DialogHeader>
         <div className="flex flex-col items-center gap-4 py-4">
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 w-full flex flex-col items-center">
-            <UploadCloud className="h-10 w-10 text-muted-foreground mb-4" />
+            <Upload className="h-10 w-10 text-muted-foreground mb-4" />
             
             {isUploading ? (
               <div className="w-full space-y-4">
@@ -156,21 +165,23 @@ const ImportLeads = ({ onImport }: ImportLeadsProps) => {
                 </p>
               </div>
             ) : (
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <div className="flex flex-col items-center">
-                  <Button variant="outline" disabled={isUploading}>
-                    Select Excel File
-                  </Button>
-                </div>
-                <input 
-                  id="file-upload" 
-                  type="file" 
-                  className="hidden" 
+              <div className="flex flex-col items-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
                   accept=".xlsx,.xls"
                   onChange={handleFileUpload}
                   disabled={isUploading}
                 />
-              </label>
+                <Button 
+                  variant="outline" 
+                  onClick={handleButtonClick}
+                  disabled={isUploading}
+                >
+                  Select Excel File
+                </Button>
+              </div>
             )}
           </div>
         </div>

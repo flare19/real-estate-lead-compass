@@ -28,7 +28,7 @@ export const useLeadsData = () => {
         setLeads(data as Lead[]);
         setFilteredLeads(data as Lead[]);
         
-        const areas = [...new Set(data.map(lead => lead.preferred_area))];
+        const areas = [...new Set(data.map(lead => lead.preferred_area).filter(Boolean))];
         setUniqueAreas(areas);
       }
     } catch (error) {
