@@ -1,33 +1,30 @@
 
 import { useState } from 'react';
-import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
-import { useNavigate } from 'react-router-dom';
 import { LeadFormData } from '@/types/lead';
 
-export const useLeadForm = () => {
+export const useLeadForm = (initialLead?: any) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Initialize form with default values
   const [formData, setFormData] = useState<LeadFormData>({
-    customer_name: '',
-    email: '',
-    mobile_number: '',
-    project_name: '',
-    budget: '',
-    preferred_area: '',
-    team_leader: '',
-    assigned_to: '',
-    last_contacted_date: format(new Date(), 'yyyy-MM-dd'),
-    next_followup_date: format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-    comments: '',
-    deal_status: 'Not Contacted',
-    interest_level: 'Yellow',
-    property_type: 'apartment',
-    site_visit_done: false,
+    customer_name: initialLead?.customer_name || '',
+    email: initialLead?.email || '',
+    mobile_number: initialLead?.mobile_number || '',
+    project_name: initialLead?.project_name || '',
+    budget: initialLead?.budget?.toString() || '',
+    preferred_area: initialLead?.preferred_area || '',
+    team_leader: initialLead?.team_leader || '',
+    assigned_to: initialLead?.assigned_to || '',
+    last_contacted_date: initialLead?.last_contacted_date || '',
+    next_followup_date: initialLead?.next_followup_date || '',
+    comments: initialLead?.comments || '',
+    deal_status: initialLead?.deal_status || 'Not Contacted',
+    interest_level: initialLead?.interest_level || 'Yellow',
+    property_type: initialLead?.property_type || '',
+    site_visit_done: initialLead?.site_visit_done || false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -39,35 +36,58 @@ export const useLeadForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSwitchChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, site_visit_done: checked }));
+  const handleSwitchChange = (name: string, value: boolean) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // New function to set form value directly
+  const setFormValue = (name: keyof LeadFormData, value: string | boolean) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const formattedData = {
+      const leadData = {
         ...formData,
-        budget: parseFloat(formData.budget),
+        budget: Number(formData.budget),
       };
 
-      const { error } = await supabase.from('leads').insert([formattedData]);
+      if (initialLead?.id) {
+        // Update existing lead
+        const { error } = await supabase
+          .from('leads')
+          .update(leadData)
+          .eq('id', initialLead.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: 'Lead Added Successfully',
-        description: 'The new lead has been added to the system.',
-      });
+        toast({
+          title: 'Lead Updated',
+          description: 'The lead has been updated successfully.',
+        });
+      } else {
+        // Create new lead
+        const { error } = await supabase
+          .from('leads')
+          .insert([leadData]);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Lead Added',
+          description: 'The lead has been added successfully.',
+        });
+      }
 
       navigate('/leads');
     } catch (error) {
-      console.error('Error adding lead:', error);
+      console.error('Error saving lead:', error);
       toast({
-        title: 'Error Adding Lead',
-        description: 'There was a problem adding the lead. Please try again.',
+        title: 'Error',
+        description: 'Failed to save lead. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -81,6 +101,7 @@ export const useLeadForm = () => {
     handleChange,
     handleSelectChange,
     handleSwitchChange,
-    handleSubmit
+    handleSubmit,
+    setFormValue
   };
 };

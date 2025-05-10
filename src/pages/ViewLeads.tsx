@@ -28,7 +28,8 @@ const ViewLeads = () => {
     totalPages,
     paginate,
     fetchLeads,
-    uniqueAreas
+    uniqueAreas,
+    deleteAllLeads
   } = useLeadsData();
 
   return (
@@ -38,6 +39,7 @@ const ViewLeads = () => {
         onViewClosedDeals={viewClosedDeals} 
         csvData={csvData}
         onImport={fetchLeads}
+        onDeleteAll={deleteAllLeads}
       />
 
       <LeadFilters

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Edit, Eye, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface LeadsTableProps {
@@ -36,6 +36,10 @@ const LeadsTable = ({ currentLeads, isLoading, onDelete, onEmailClick }: LeadsTa
     }
 
     navigate(`/leads/edit/${id}`);
+  };
+  
+  const handleViewDetails = (id: string) => {
+    navigate(`/leads/view/${id}`);
   };
 
   if (isLoading) {
@@ -103,29 +107,39 @@ const LeadsTable = ({ currentLeads, isLoading, onDelete, onEmailClick }: LeadsTa
               </TableCell>
               <TableCell>{lead.next_followup_date}</TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Actions</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {(isCEO || profile?.name === lead.assigned_to) && (
-                      <DropdownMenuItem onClick={() => handleEdit(lead.id, lead.assigned_to)}>
-                        <Edit className="mr-2 h-4 w-4" /> Edit
-                      </DropdownMenuItem>
-                    )}
-                    {isCEO && (
-                      <DropdownMenuItem 
-                        onClick={() => onDelete(lead.id, lead.assigned_to)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleViewDetails(lead.id)}
+                  >
+                    <Eye className="h-4 w-4 mr-1" /> View
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Actions</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {(isCEO || profile?.name === lead.assigned_to) && (
+                        <DropdownMenuItem onClick={() => handleEdit(lead.id, lead.assigned_to)}>
+                          <Edit className="mr-2 h-4 w-4" /> Edit
+                        </DropdownMenuItem>
+                      )}
+                      {isCEO && (
+                        <DropdownMenuItem 
+                          onClick={() => onDelete(lead.id, lead.assigned_to)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           ))}

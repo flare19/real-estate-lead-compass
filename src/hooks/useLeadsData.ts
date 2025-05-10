@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { supabase, Lead } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
 
 export const useLeadsData = () => {
   const { toast } = useToast();
@@ -54,15 +54,18 @@ export const useLeadsData = () => {
   const applyFilters = () => {
     let results = [...leads];
 
-    if (searchTerm) {
+    // Fix search functionality - convert everything to lowercase for case-insensitive search
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
       results = results.filter(
         (lead) =>
-          lead.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.preferred_area.toLowerCase().includes(searchTerm.toLowerCase())
+          (lead.customer_name && lead.customer_name.toLowerCase().includes(term)) ||
+          (lead.email && lead.email.toLowerCase().includes(term)) ||
+          (lead.preferred_area && lead.preferred_area.toLowerCase().includes(term))
       );
     }
 
+    // Fix budget filter
     if (budgetFilter !== 'all') {
       const [min, max] = budgetFilter.split('-').map(Number);
       
@@ -75,10 +78,12 @@ export const useLeadsData = () => {
       }
     }
 
+    // Fix status filter
     if (statusFilter !== 'all') {
       results = results.filter((lead) => lead.deal_status === statusFilter);
     }
     
+    // Fix area filter
     if (areaFilter !== 'all') {
       results = results.filter((lead) => lead.preferred_area === areaFilter);
     }
@@ -128,6 +133,64 @@ export const useLeadsData = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
     XLSX.writeFile(workbook, `Leads_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  };
+
+  const deleteAllLeads = async (password: string) => {
+    try {
+      // Verify password
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) throw authError;
+      
+      if (!user) {
+        toast({
+          title: 'Error',
+          description: 'You must be logged in to perform this action.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email!,
+        password,
+      });
+      
+      if (signInError) {
+        toast({
+          title: 'Error',
+          description: 'Incorrect password. Please try again.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      // Delete all leads
+      const { error: deleteError } = await supabase
+        .from('leads')
+        .delete()
+        .neq('id', 'placeholder'); // Delete all leads
+      
+      if (deleteError) throw deleteError;
+      
+      setLeads([]);
+      setFilteredLeads([]);
+      
+      toast({
+        title: 'Success',
+        description: 'All leads have been deleted.',
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting all leads:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete leads. Please try again.',
+        variant: 'destructive',
+      });
+      return false;
+    }
   };
 
   const csvData = filteredLeads.map((lead) => ({
@@ -183,8 +246,7 @@ export const useLeadsData = () => {
     totalPages,
     paginate,
     fetchLeads,
-    uniqueAreas
+    uniqueAreas,
+    deleteAllLeads
   };
 };
-
-import * as XLSX from 'xlsx';

@@ -1,13 +1,19 @@
 
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import LeadForm from '@/components/leads/LeadForm';
 import { useEmployeeData } from '@/hooks/useEmployeeData';
 import { useLeadForm } from '@/hooks/useLeadForm';
 
+interface LocationState {
+  preselectedEmployee?: string;
+}
+
 const AddLead = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { employees } = useEmployeeData();
   const { 
     formData, 
@@ -15,8 +21,17 @@ const AddLead = () => {
     handleChange, 
     handleSelectChange, 
     handleSwitchChange, 
-    handleSubmit 
+    handleSubmit, 
+    setFormValue
   } = useLeadForm();
+
+  // Check if we have a preselected employee from location state
+  useEffect(() => {
+    const state = location.state as LocationState;
+    if (state && state.preselectedEmployee) {
+      setFormValue('assigned_to', state.preselectedEmployee);
+    }
+  }, [location.state, setFormValue]);
 
   return (
     <div className="space-y-6">
