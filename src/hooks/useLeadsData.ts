@@ -193,22 +193,23 @@ export const useLeadsData = () => {
     }
   };
 
+  // Fix csvData to ensure Budget is converted to string
   const csvData = filteredLeads.map((lead) => ({
-    'Customer Name': lead.customer_name,
-    'Email': lead.email,
-    'Mobile': lead.mobile_number,
-    'Project': lead.project_name,
-    'Budget': lead.budget,
-    'Area': lead.preferred_area,
-    'Team Leader': lead.team_leader,
-    'Assigned To': lead.assigned_to,
-    'Last Contacted': lead.last_contacted_date,
-    'Next Followup': lead.next_followup_date,
-    'Status': lead.deal_status,
-    'Interest': lead.interest_level,
-    'Property Type': lead.property_type,
+    'Customer Name': lead.customer_name || '',
+    'Email': lead.email || '',
+    'Mobile': lead.mobile_number || '',
+    'Project': lead.project_name || '',
+    'Budget': lead.budget?.toString() || '',
+    'Area': lead.preferred_area || '',
+    'Team Leader': lead.team_leader || '',
+    'Assigned To': lead.assigned_to || '',
+    'Last Contacted': lead.last_contacted_date || '',
+    'Next Followup': lead.next_followup_date || '',
+    'Status': lead.deal_status || '',
+    'Interest': lead.interest_level || '',
+    'Property Type': lead.property_type || '',
     'Site Visit': lead.site_visit_done ? 'Yes' : 'No',
-    'Comments': lead.comments,
+    'Comments': lead.comments || '',
   }));
 
   // Pagination helpers

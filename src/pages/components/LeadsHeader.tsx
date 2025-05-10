@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { CSVLink } from 'react-csv';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ interface LeadsHeaderProps {
   onViewClosedDeals: () => void;
   onImport: () => void;
   csvData: Record<string, string>[];
-  onDeleteAll?: () => Promise<boolean>;
+  onDeleteAll?: (password: string) => Promise<boolean>;
 }
 
 const LeadsHeader = ({ 
